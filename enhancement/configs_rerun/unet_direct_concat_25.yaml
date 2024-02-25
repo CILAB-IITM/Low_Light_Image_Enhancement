@@ -1,0 +1,77 @@
+# Configuration file for direct concatenation of left and right images to UNet Basic
+# The original config file is in /home/gpu/girish/enhancement/configs_outdoor_disp
+
+train_dataset:
+  dataset:
+    name: image-folder-pair
+    args:
+      root_path_inp1: /data1/deva/dataset/OUTDOOR_RAW/low_light/1_25/cam1/train_split
+      root_path_inp2: /data1/deva/dataset/OUTDOOR_RAW/low_light/1_25/cam2/train_split
+      root_path_out: /data1/deva/dataset/OUTDOOR_RGB_UNRECT/well_lit/cam1/train_split
+      split_key: train
+      repeat: 15
+      patchify: False
+      patch_size: 512
+  wrapper:
+    name: preprocessing
+    args:
+      patch: true
+      monochrome: false
+      stereo: true
+      amp: 25
+      augment_rotate: false
+      resize: true
+      raw: True
+      flip: false
+      psize: [1080,2048]
+      rsize: [192, 624]
+  batch_size: 4
+
+val_dataset:
+  dataset:
+    name: image-folder-pair
+    args:
+      root_path_inp1: /data1/deva/dataset/OUTDOOR_RAW/low_light/1_25/cam1/train_split
+      root_path_inp2: /data1/deva/dataset/OUTDOOR_RAW/low_light/1_25/cam2/train_split
+      root_path_out: /data1/deva/dataset/OUTDOOR_RGB_UNRECT/well_lit/cam1/train_split
+      split_key: test
+      repeat: 1
+      patchify: false
+      patch_size: 512
+  wrapper:
+    name: preprocessing
+    args:
+      patch: False
+      monochrome: false
+      stereo: true
+      amp: 25
+      raw: true # Need to check if this is alright
+      resize: True
+      rsize: [384, 1248]
+  batch_size: 4
+
+model:
+  name: unet-basic-modified
+  args:
+    in_channels: 8
+    out_channels: 3
+    batch_norm: false
+    
+loss: l1
+
+optimizer:
+  name: adam
+  args:
+    lr: 0.0001
+  sd: false
+multi_step_lr:
+  milestones: [10]
+  gamma: 0.1
+epoch_max: 30
+
+data_norm:
+  inp: {sub: [0.5], div: [0.5]}
+  gt: {sub: [0.5], div: [0.5]}
+
+epoch_val: 1
+epoch_save: 10

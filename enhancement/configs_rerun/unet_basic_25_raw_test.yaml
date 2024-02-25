@@ -1,0 +1,69 @@
+
+train_dataset:
+  dataset:
+    name: image-folder-basic-raw
+    args:
+      root_path_inp: /data1/deva/dataset/OUTDOOR_RAW/low_light/1_25/cam1/train_split
+      root_path_out: /data1/deva/dataset/OUTDOOR_RGB_UNRECT/well_lit/cam1/train_split
+      split_key: train
+      repeat: 30
+      patchify: False
+      patch_size: 512
+  wrapper:
+    name: preprocessing
+    args:
+      patch: False  #! Patch Change
+      monochrome: False
+      amp: 25
+      augment_rotate: True 
+      resize: True
+      
+  batch_size: 4
+
+val_dataset:
+  dataset:
+    name: image-folder-basic-raw
+    args:
+      root_path_inp: /data1/deva/dataset/OUTDOOR_RAW/low_light/1_25/cam1/train_split
+      root_path_out: /data1/deva/dataset/OUTDOOR_RGB_UNRECT/well_lit/cam1/train_split
+      split_key: test
+      repeat: 1
+      patchify: false
+      patch_size: 512
+  wrapper:
+    name: preprocessing
+    args:
+      patch: false
+      monochrome: False
+      amp: 25
+      augment_rotate: True
+      resize: True
+  batch_size: 4
+
+
+# Need to figure this out
+model:
+  name: unet-basic
+  args:
+    in_channels: 4
+    out_channels: 3
+    batch_norm: false
+    
+loss: l1
+
+optimizer:
+  name: adam
+  args:
+    lr: 0.0001
+  sd: false
+multi_step_lr:
+  milestones: [10]
+  gamma: 0.1
+epoch_max: 30
+
+data_norm:
+  inp: {sub: [0.5], div: [0.5]}
+  gt: {sub: [0.5], div: [0.5]}
+
+epoch_val: 1
+epoch_save: 10
