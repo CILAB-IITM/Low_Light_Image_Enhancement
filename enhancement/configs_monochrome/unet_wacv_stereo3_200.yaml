@@ -1,0 +1,63 @@
+train_dataset:
+  dataset:
+    name: image-folder-pair
+    args:
+      root_path_inp1: /home/gpu/girish/dataset/MONOCHROME_PNG/low_light/1_200/cam1
+      root_path_inp2: /home/gpu/girish/dataset/MONOCHROME_PNG/low_light/1_200/cam2
+      root_path_out: /home/gpu/girish/dataset/MONOCHROME_PNG/well_lit/cam1
+      split_key: train
+      repeat: 30
+      patchify: false
+      patch_size: 512
+  wrapper:
+    name: preprocessing
+    args:
+      patch: true
+      monochrome: true
+      stereo: true
+  batch_size: 4
+
+val_dataset:
+  dataset:
+    name: image-folder-pair
+    args:
+      root_path_inp1: /home/gpu/girish/dataset/MONOCHROME_PNG/low_light/1_200/cam1
+      root_path_inp2: /home/gpu/girish/dataset/MONOCHROME_PNG/low_light/1_200/cam2
+      root_path_out: /home/gpu/girish/dataset/MONOCHROME_PNG/well_lit/cam1
+      split_key: test
+      repeat: 1
+      patchify: true
+      patch_size: 512
+  wrapper:
+    name: preprocessing
+    args:
+      patch: false
+      monochrome: true
+      stereo: true
+  batch_size: 4
+
+model:
+  name: unet-stereo-3
+  args:
+    in_channels: 2
+    out_channels: 1
+    batch_norm: False
+    
+loss: l1
+
+optimizer:
+  name: adam
+  args:
+    lr: 0.0001
+  sd: false
+multi_step_lr:
+  milestones: [10]
+  gamma: 0.1
+epoch_max: 30
+
+data_norm:
+  inp: {sub: [0.5], div: [0.5]}
+  gt: {sub: [0.5], div: [0.5]}
+
+epoch_val: 1
+epoch_save: 10

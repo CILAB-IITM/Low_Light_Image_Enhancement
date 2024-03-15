@@ -240,6 +240,7 @@ def eval_psnr(loader, model, writer, epoch, loss_fn, config, data_norm=None):
             # print(inp.shape, "Input to the validation Set")
             # This is where the prediction is happening. So everything before is the image processing
             pred = model(inp)
+
             if config["model"]["name"] == "cfnet":
                 loss = loss_fn(
                     pred["recons"],
@@ -257,8 +258,12 @@ def eval_psnr(loader, model, writer, epoch, loss_fn, config, data_norm=None):
 
                 # resizer = Resize([256, 256])
                 # gt = resizer(gt)
-                resizer = Resize([384, 1248])
-                gt = resizer(gt)
+                if config.get('stereo'):
+                    resizer = Resize([384, 1248])
+                    batch["out"] = resizer(batch["out"])
+                    gt = resizer(gt)
+                resizer = Resize([512, 512])
+                pred = resizer(pred)
                 loss = loss_fn(pred, gt)
                 # print(loss, "From Validation")
                 pred = pred * gt_div + gt_sub
@@ -275,7 +280,7 @@ def eval_psnr(loader, model, writer, epoch, loss_fn, config, data_norm=None):
             #     )
 
             i += 1
-            res = metric_fn(pred, resizer(batch["out"]))
+            res = metric_fn(pred, batch["out"])
             val_res.add(res.item())
             # print(val_res.item())
 

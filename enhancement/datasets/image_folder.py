@@ -51,10 +51,14 @@ class ImageFolder(Dataset):
                 for path in root_path:
                     filenames.extend(sorted(os.listdir(path)))
             else:
-                filenames = sorted(os.listdir(root_path))
+                filenames = sorted(os.listdir(root_path), key=lambda x: int(x.split('.')[0]))
+                # print(filenames, 'Output List of files from image_folder line 55')
+                # print()
+                # print(len(filenames), 'Output List of files from image_folder line 56')
 
             if split_key == "train":
                 filenames = filenames[: math.ceil(len(filenames) * split_ratio)]
+                # print(len(filenames), 'Length of filenames from image_folder line 58')
             elif split_key == "test":
                 filenames = filenames[math.ceil(len(filenames) * split_ratio) :]
         else:
@@ -64,6 +68,7 @@ class ImageFolder(Dataset):
         self.files = []
         for filename in filenames:
             file = os.path.join(root_path, filename)
+            # print(file, 'Output file name from image_folder line 68')
 
             if cache == "none":
                 self.files.append(file)
@@ -154,6 +159,7 @@ class ImageFolder(Dataset):
                 img = torch.from_numpy(img_arr / 255).permute(0, 3, 1, 2)
             else:
                 img = torch.from_numpy(img_arr / 255).permute(2, 0, 1).unsqueeze(0)
+            # print(img.shape, 'Processed Image from Image Folder line 158')
             return img
 
         elif self.cache == "memory":
@@ -173,11 +179,13 @@ class ImageFolderOutRAW(Dataset):
         cache="none",
         patchify=False,
         patch_size=256,
+        hetero = True
     ):
         self.repeat = repeat
         self.cache = cache
         self.patchify = patchify
         self.patch_size = patch_size
+        self.hetero = hetero
         #! Check here
         """
         The below piece of code needs to be understood 
@@ -186,23 +194,33 @@ class ImageFolderOutRAW(Dataset):
         
         
         """
-        # print("ImageFolderOutRAW")
-        if split_file is None:
-            if isinstance(root_path, list):
-                filenames = []
-                for path in root_path:
-                    filenames.extend(sorted(os.listdir(path)))
+        print("ImageFolderOutRAW from image_folder line 195")
+        if self.hetero == False:
+            if split_file is None:
+                if isinstance(root_path, list):
+                    filenames = []
+                    for path in root_path:
+                        filenames.extend(sorted(os.listdir(path)))
+                else:
+                    filenames = sorted(os.listdir(root_path))
+
+                if split_key == "train":
+                    filenames = filenames[: math.ceil(len(filenames) * split_ratio)]
+                elif split_key == "test":
+                    filenames = filenames[math.ceil(len(filenames) * split_ratio) :]
             else:
-                filenames = sorted(os.listdir(root_path))
-
-            if split_key == "train":
-                filenames = filenames[: math.ceil(len(filenames) * split_ratio)]
-            elif split_key == "test":
-                filenames = filenames[math.ceil(len(filenames) * split_ratio) :]
+                with open(split_file, "r") as f:
+                    filenames = json.load(f)[split_key]
         else:
-            with open(split_file, "r") as f:
-                filenames = json.load(f)[split_key]
-
+            if split_file is None:
+                filenames = sorted(os.listdir(root_path), key=lambda x: int(x.split('_')[0]))
+                if split_key == "train":
+                    filenames = filenames[:math.ceil(len(filenames) * split_ratio)]
+                elif split_key == "test":
+                    filenames = filenames[math.ceil(len(filenames) * split_ratio) :]
+            else:
+                with open(split_file, "r") as f:
+                    filenames = json.load(f)[split_key]
         self.files = []
         for filename in filenames:
             file = os.path.join(root_path, filename)
@@ -417,10 +435,12 @@ class ImageFolder2(Dataset):
         self.patch_size = patch_size
 
         if split_file is None:
-            filenames = sorted(
-                os.listdir(root_path1)
-            )  # assuming both paths have same image names
-
+            filenames = sorted(os.listdir(root_path1), key=lambda x: int(x.split('_')[0]))
+              # assuming both paths have same image names
+            # print(filenames, 'Input List of files from image_folder line 428')
+            # print()
+            # print(len(filenames), 'Input List of files from image_folder line 429')
+            # print()
             if split_key == "train":
                 filenames = filenames[:math.ceil(len(filenames) * split_ratio)]
             elif split_key == "test":
@@ -437,7 +457,19 @@ class ImageFolder2(Dataset):
             if cache == "none":
                 """
                 Start
+                
                 """
+                # print(file1, 'Left Image File name from image_folder line 445')
+                img1_name = os.path.basename(file1)
+                img2_name = os.path.basename(file2)
+                # print(img1_name, 'File Name from image_folder line 447')
+                amp = float(img1_name.split('_')[-1].split('.')[0])
+                # print(self.amp, 'amp from image_folder line 449')
+                # print(amp1-amp2, 'amplitude value from image_folder line 449')
+
+
+
+                # print(img1_name, img2_name, 'Hopefully the file names from image_folder line 443')
                 img1 = imageio.imread(file1)
                 img2 = imageio.imread(file2)
                 if self.patchify:
@@ -447,7 +479,7 @@ class ImageFolder2(Dataset):
                         self.files.append((img_arr1[i], img_arr2[i]))
                 else:
                     # print(img1.shape, 'Left Image Shape from image_folder from line 449')
-                    self.files.append((img1, img2))
+                    self.files.append((img1, img2,amp))
 
                 # self.files.append([file1, file2]
             elif cache == "memory":
@@ -531,6 +563,7 @@ class ImageFolder2(Dataset):
             img1 = torch.from_numpy(x[0] / 255).unsqueeze(0) # Since it is raw
             img2 = torch.from_numpy(x[1] / 255).unsqueeze(0)
             img = torch.cat((img1, img2), dim=0)
+            # print(x[2], 'amplification needed')
             # print('Jeichutom Maaara')
 
             # print(img_arr1.shape, img_arr2.shape, img_arr1.dtype, img_arr2.dtype, 'hola')
@@ -568,7 +601,8 @@ class ImageFolder2(Dataset):
         #         # img1 = torch.from_numpy(img_arr1 / 255).permute(2, 0, 1).unsqueeze(0)
         #         # img2 = torch.from_numpy(img_arr2 / 255).permute(2, 0, 1).unsqueeze(0)
             # print(img.shape, 'input shape from image_folder2 line 528')
-            return img
+            # print(self.amp, 'self.amp from image_folder line 584')
+            return (img, x[2])
 
         elif self.cache == "memory":
             return x
@@ -705,6 +739,7 @@ class ImageFolder4(Dataset):
                 filenames = []
                 for path in root_path1:
                     filenames.extend(sorted(os.listdir(path)))
+                print(len(filenames))
             else:
                 filenames = sorted(os.listdir(root_path1))
 
@@ -834,9 +869,11 @@ class ImageFolderBasic(Dataset):
         return len(self.dataset1)
 
     def __getitem__(self, idx):
+        x, amp = self.dataset1[idx]
         y = self.dataset2[idx]
+        # print(amp, 'amp from image_folder line 855')
         # print(y.shape, 'output size from image folder')
-        return self.dataset1[idx], y
+        return x, y, amp
 
 
 @register("image-folder-basic-raw")

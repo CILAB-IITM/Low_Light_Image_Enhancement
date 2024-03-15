@@ -1,0 +1,61 @@
+train_dataset:
+  dataset:
+    name: image-folder-basic
+    args:
+      root_path_inp: /home/gpu/girish/dataset/MONOCHROME_PNG/low_light/1_200/cam1
+      root_path_out: /home/gpu/girish/dataset/MONOCHROME_PNG/well_lit/cam1
+      split_key: train
+      repeat: 30
+      patchify: False
+      patch_size: 512
+  wrapper:
+    name: preprocessing
+    args:
+      patch: true
+      monochrome: true
+      amp: 200
+  batch_size: 4
+
+val_dataset:
+  dataset:
+    name: image-folder-basic
+    args:
+      root_path_inp: /home/gpu/girish/dataset/MONOCHROME_PNG/low_light/1_200/cam1
+      root_path_out: /home/gpu/girish/dataset/MONOCHROME_PNG/well_lit/cam1
+      split_key: test
+      repeat: 1
+      patchify: True
+      patch_size: 512
+  wrapper:
+    name: preprocessing
+    args:
+      patch: false
+      monochrome: true
+      amp: 200
+  batch_size: 4
+
+model:
+  name: unet-basic
+  args:
+    in_channels: 1
+    out_channels: 1
+    batch_norm: false
+    
+loss: l1
+
+optimizer:
+  name: adam
+  args:
+    lr: 0.0001
+  sd: false
+multi_step_lr:
+  milestones: [10, 20]
+  gamma: 0.1
+epoch_max: 20
+
+data_norm:
+  inp: {sub: [0.5], div: [0.5]}
+  gt: {sub: [0.5], div: [0.5]}
+
+epoch_val: 1
+epoch_save: 5

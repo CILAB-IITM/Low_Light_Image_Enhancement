@@ -1,0 +1,57 @@
+train_dataset:
+  dataset:
+    name: image-folder-basic
+    args:
+      root_path_inp: /home/gpu/girish/dataset/OUTDOOR_RGB/low_light/1_250/png/cam1/adobe
+      root_path_out: /home/gpu/girish/dataset/OUTDOOR_RGB/well_lit/png/cam1/hist
+      split_key: train
+      repeat: 30
+      patchify: False
+      patch_size: 512
+  wrapper:
+    name: preprocessing
+    args:
+      patch: true
+  batch_size: 4
+
+val_dataset:
+  dataset:
+    name: image-folder-basic
+    args:
+      root_path_inp: /home/gpu/girish/dataset/OUTDOOR_RGB/low_light/1_250/png/cam1/adobe
+      root_path_out: /home/gpu/girish/dataset/OUTDOOR_RGB/well_lit/png/cam1/hist
+      split_key: test
+      repeat: 1
+      patchify: True
+      patch_size: 512
+  wrapper:
+    name: preprocessing
+    args:
+      patch: false
+  batch_size: 4
+
+model:
+  name: unet-basic
+  args:
+    in_channels: 3
+    out_channels: 3
+    batch_norm: false
+    
+loss: l1
+
+optimizer:
+  name: adam
+  args:
+    lr: 0.0001
+  sd: false
+multi_step_lr:
+  milestones: [10, 20]
+  gamma: 0.5
+epoch_max: 20
+
+data_norm:
+  inp: {sub: [0.5], div: [0.5]}
+  gt: {sub: [0.5], div: [0.5]}
+
+epoch_val: 1
+epoch_save: 5

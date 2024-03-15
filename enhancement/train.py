@@ -95,7 +95,7 @@ def make_data_loader(dataset_dict, tag=""):
 
 def make_data_loaders():
     train_loader = make_data_loader(config.get("train_dataset"), tag="train")
-    # print('train_loader completed', 'from train.py line 79')
+    print('train_loader completed', 'from train.py line 79')
     val_loader = make_data_loader(config.get("val_dataset"), tag="val")
     # print('val_loader completed', 'from train.py line 79')
     return train_loader, val_loader
@@ -373,8 +373,9 @@ def train(train_loader, model, optimizer, loss_fn, epoch):
 
         # print(inp.shape, gt.shape, pred.shape, 'Shud be different ideally')
         # pred = pred.clamp_(0, 1) # This feels bit sus
-        resizer = Resize([192, 624])
-        gt = resizer(gt)
+        if config.get('stereo'):
+            resizer = Resize([192, 624])
+            gt = resizer(gt)
         if i%100 == 0:
             print()
             print('Saving')
@@ -398,10 +399,12 @@ def train(train_loader, model, optimizer, loss_fn, epoch):
             )
         else:
             # print(gt, "check here")
-            # print(pred.shape, gt.shape, 'Check this out')
-
+            resizer = Resize([512, 512])
+            pred = resizer(pred)
+            # print(pred.shape, gt.shape, 'Pred and gt shape from train.py line 402')
             #! Can try putting this in a Class statement
             # print('loss calculated', 'from train.py line 381')
+
             loss = loss_fn(pred, gt)
             # print(gt.shape)
             # pred_byte = (pred.clamp_(0,1)*255).clamp_(0,255).byte()

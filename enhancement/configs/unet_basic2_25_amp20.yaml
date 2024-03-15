@@ -1,0 +1,59 @@
+train_dataset:
+  dataset:
+    name: image-folder-basic
+    args:
+      root_path_inp: /data2/data/suhas/ImageColorisation/dataset/OUTDOOR_RGB/low_light/1_25/png/cam1/adobe
+      root_path_out: /data2/data/suhas/ImageColorisation/dataset/OUTDOOR_RGB/well_lit/png/cam1/hist
+      split_key: train
+      repeat: 30
+      patchify: False
+      patch_size: 512
+  wrapper:
+    name: preprocessing
+    args:
+      patch: true
+      amp: 20
+  batch_size: 8
+
+val_dataset:
+  dataset:
+    name: image-folder-basic
+    args:
+      root_path_inp: /data2/data/suhas/ImageColorisation/dataset/OUTDOOR_RGB/low_light/1_25/png/cam1/adobe
+      root_path_out: /data2/data/suhas/ImageColorisation/dataset/OUTDOOR_RGB/well_lit/png/cam1/hist
+      split_key: test
+      repeat: 1
+      patchify: True
+      patch_size: 512
+  wrapper:
+    name: preprocessing
+    args:
+      patch: false
+      amp: 20
+  batch_size: 8
+
+model:
+  name: unet-basic
+  args:
+    in_channels: 3
+    out_channels: 3
+    batch_norm: false
+    
+loss: l1
+
+optimizer:
+  name: adam
+  args:
+    lr: 0.001
+  sd: false
+multi_step_lr:
+  milestones: [5, 10, 15, 20]
+  gamma: 0.5
+epoch_max: 20
+
+data_norm:
+  inp: {sub: [0.5], div: [0.5]}
+  gt: {sub: [0.5], div: [0.5]}
+
+epoch_val: 1
+epoch_save: 5

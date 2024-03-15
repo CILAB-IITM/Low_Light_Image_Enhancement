@@ -1,0 +1,71 @@
+train_dataset:
+  dataset:
+    name: image-folder-warped-pair
+    args:
+      root_path_inp1: /home/gpu/girish/dataset/OUTDOOR_RGB/low_light/1_200/png/cam1/adobe
+      root_path_inp2: /home/gpu/girish/dataset/OUTDOOR_RGB/low_light/1_200/png/cam2/adobe
+      root_path_out: /home/gpu/girish/dataset/OUTDOOR_RGB/well_lit/png/cam1/hist
+      disp_path: /home/gpu/girish/dataset/Stereo_Depth_Estimation_Expts-depth_gt_share/ground_best_depths_mode
+      occ_path: /home/gpu/girish/dataset/Stereo_Depth_Estimation_Expts-depth_gt_share/ground_best_depths_occ_mask_mode
+      use_gt: true
+      split_key: train
+      repeat: 30
+      patchify: false
+      patch_size: 512
+  wrapper:
+    name: preprocessing
+    args:
+      patch: true
+      monochrome: false
+      stereo: true
+      amp: 20
+  batch_size: 4
+
+val_dataset:
+  dataset:
+    name: image-folder-warped-pair
+    args:
+      root_path_inp1: /home/gpu/girish/dataset/OUTDOOR_RGB/low_light/1_200/png/cam1/adobe
+      root_path_inp2: /home/gpu/girish/dataset/OUTDOOR_RGB/low_light/1_200/png/cam2/adobe
+      root_path_out: /home/gpu/girish/dataset/OUTDOOR_RGB/well_lit/png/cam1/hist
+      disp_path: /home/gpu/girish/dataset/Stereo_Depth_Estimation_Expts-depth_gt_share/ground_best_depths_mode
+      occ_path: /home/gpu/girish/dataset/Stereo_Depth_Estimation_Expts-depth_gt_share/ground_best_depths_occ_mask_mode
+      use_gt: true
+      split_key: test
+      repeat: 1
+      patchify: true
+      patch_size: 512
+  wrapper:
+    name: preprocessing
+    args:
+      patch: false
+      monochrome: false
+      stereo: true
+      amp: 20
+  batch_size: 4
+
+model:
+  name: unet-basic
+  args:
+    in_channels: 6
+    out_channels: 3
+    batch_norm: false
+    
+loss: l1
+
+optimizer:
+  name: adam
+  args:
+    lr: 0.0001
+  sd: false
+multi_step_lr:
+  milestones: [10]
+  gamma: 0.1
+epoch_max: 20
+
+data_norm:
+  inp: {sub: [0.5], div: [0.5]}
+  gt: {sub: [0.5], div: [0.5]}
+
+epoch_val: 1
+epoch_save: 10
