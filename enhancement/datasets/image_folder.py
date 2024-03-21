@@ -31,11 +31,13 @@ class ImageFolder(Dataset):
         cache="none",
         patchify=False,
         patch_size=256,
+        hetero = True
     ):
         self.repeat = repeat
         self.cache = cache
         self.patchify = patchify
         self.patch_size = patch_size
+        self.hetero = True
         #! Check here
         """
         The below piece of code needs to be understood 
@@ -51,7 +53,11 @@ class ImageFolder(Dataset):
                 for path in root_path:
                     filenames.extend(sorted(os.listdir(path)))
             else:
-                filenames = sorted(os.listdir(root_path), key=lambda x: int(x.split('.')[0]))
+                if self.hetero == True:
+                    filenames = sorted(os.listdir(root_path), key=lambda x: int(x.split('.')[0]))
+                else:
+                    print('This code needs to be completed')
+                    pass
                 # print(filenames, 'Output List of files from image_folder line 55')
                 # print()
                 # print(len(filenames), 'Output List of files from image_folder line 56')
@@ -226,7 +232,12 @@ class ImageFolderOutRAW(Dataset):
             file = os.path.join(root_path, filename)
 
             if cache == "none":
-                self.files.append(file)
+                if self.hetero == True: 
+                    img_name = os.path.basename(file)
+                    amp = float(img_name.split('_')[-1].split('.')[0])
+                    self.files.append([file, amp])
+                else:
+                    self.files.append(file)
 
             elif cache == "memory":
                 img_arr = Image.open(file)
@@ -325,7 +336,11 @@ class ImageFolderOutRAW(Dataset):
         if self.cache == "none":
             # print('Unpacking Started')
             #! This is where prolly the processing needs to be done
-            raw = cv2.imread(x, -1)
+            if self.hetero == True:
+                raw = cv2.imread(x[0], -1)
+                amp = x[1]                
+            else:
+                x = cv2.imread(x, -1)
             # print('It comes here')
             img_arr = raw
             if self.patchify:
@@ -409,7 +424,7 @@ class ImageFolderOutRAW(Dataset):
             #     img = torch.from_numpy(img_arr / 255).permute(0, 3, 1, 2)
             # else:
             #     img = torch.from_numpy(img_arr / 255).permute(2, 0, 1).unsqueeze(0)
-            return img
+            return img, amp
 
         elif self.cache == "memory":
             return x

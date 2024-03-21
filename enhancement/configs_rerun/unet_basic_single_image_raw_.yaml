@@ -14,11 +14,14 @@ train_dataset:
   wrapper:
     name: preprocessing
     args:
-      patch: False  #! Patch Change
+      patch: True  #! Patch Change
       monochrome: False
-      amp: 25
-      augment_rotate: True 
-      resize: True
+      stereo: True
+      augment_rotate: False 
+      resize: False
+      raw: true
+      flip: True
+      hetero: True
       
   batch_size: 4
 
@@ -41,6 +44,7 @@ val_dataset:
       amp: 25
       augment_rotate: True
       resize: True
+      hetero: True
   batch_size: 4
 
 

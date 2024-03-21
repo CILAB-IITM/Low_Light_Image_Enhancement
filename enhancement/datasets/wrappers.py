@@ -35,7 +35,8 @@ class Preprocessing(Dataset):
         add_noise=False,
         raw = False, 
         flip = False, 
-        rsize = [384,1248]
+        rsize = [384,1248], 
+        hetero = True
     ):
         self.dataset = dataset
         self.resize = resize
@@ -43,7 +44,11 @@ class Preprocessing(Dataset):
         self.psize = psize
         self.random_crop = random_crop
         self.amp = amp
-        self.pcount = dataset[0][0].shape[0]
+        self.hetero = hetero
+        if self.hetero == False:
+            self.pcount = dataset[0][0].shape[0]
+        else:
+            self.pcount = dataset[0][0][0].shape[0]
         self.augment_rotate = augment_rotate
         self.normalise = normalise
         self.equalize = equalize
@@ -91,8 +96,11 @@ class Preprocessing(Dataset):
             # print('bye 2')
             # print(y.shape, 'shape of y')
         else:
-            x = self.dataset[idx // self.pcount][0][idx % self.pcount]
+            x = self.dataset[idx // self.pcount][0][0]
             y = self.dataset[idx // self.pcount][1][idx % self.pcount]
+            amp = self.dataset[idx // self.pcount][0][1] #!
+            # print(x.shape, y.shape, 'input and output shape from wrapper line 102')
+            # print(amp, 'amp from wrapper line 97') 
         if self.amp is not None:
             if self.amp == "cstm":
                 # Will not work for Stereo 
@@ -274,7 +282,8 @@ class Preprocessing(Dataset):
             new_x = rotate(new_x, angle)
             new_y = rotate(new_y, angle)
         
-        if self.flip and random.random() > 0.5:
+        if self.flip and random.random() > 0.01:
+            print('Flipping happening from wrappers line 286')
             if random.random() > 0.5: # Horizontal Flip
             #     temp_x = new_x[:,::-1,:].copy()
             #     temp_y = new_y[:,::-1,:].copy() 
