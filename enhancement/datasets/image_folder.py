@@ -37,7 +37,7 @@ class ImageFolder(Dataset):
         self.cache = cache
         self.patchify = patchify
         self.patch_size = patch_size
-        self.hetero = True
+        self.hetero = hetero
         #! Check here
         """
         The below piece of code needs to be understood 
@@ -200,7 +200,6 @@ class ImageFolderOutRAW(Dataset):
         
         
         """
-        print("ImageFolderOutRAW from image_folder line 195")
         if self.hetero == False:
             if split_file is None:
                 if isinstance(root_path, list):

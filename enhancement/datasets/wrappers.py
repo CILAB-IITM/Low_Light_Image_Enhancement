@@ -109,7 +109,7 @@ class Preprocessing(Dataset):
                 sumOfPixels = torch.sum(x)
                 amp = 0.5 * (3 * H * W) / (sumOfPixels)  #! m = 0.5
                 x = (x * amp).clamp_(0, 1)
-            elif amp and self.stereo:
+            elif amp:
                 x = (x * amp).clamp_(0, 1)
             else:
                 # print('hello')
@@ -117,7 +117,7 @@ class Preprocessing(Dataset):
 
         if self.patch:
             if self.raw and not self.stereo:
-                rnum_h = random.randint(0, x.shape[0] - self.psize[0])
+                rnum_h = random.randint(0, x.shape[-2] - self.psize[0])
                 rnum_w = random.randint(0, x.shape[-1] - self.psize[1])
                 if rnum_h % 2 != 0:
                     rnum_h += 1

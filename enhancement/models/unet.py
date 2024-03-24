@@ -2,6 +2,7 @@ from models import register, make
 import torch.nn as nn
 import torch
 from .unet_cbam import SpatialGate, ResBlock
+torch.autograd.set_detect_anomaly(True)
 
 
 class ConvBlock(nn.Module):
@@ -12,8 +13,8 @@ class ConvBlock(nn.Module):
         self.bn1 = nn.BatchNorm2d(out_c)
         self.conv2 = nn.Conv2d(out_c, out_c, kernel_size=3, padding=1)
         self.bn2 = nn.BatchNorm2d(out_c)
-        self.relu = nn.ReLU()
-
+        self.relu = nn.ReLU(inplace=True)
+        
     def forward(self, inputs):
         x = self.conv1(inputs)
         if self.batch_norm:
@@ -35,7 +36,7 @@ class ConvBlock2(nn.Module):
         if lrelu:
             self.relu = nn.LeakyReLU()
         else:
-            self.relu = nn.ReLU()
+            self.relu = nn.ReLU(inplace = True)
 
     def forward(self, inputs):
         x = self.conv1(inputs)
@@ -174,6 +175,116 @@ class UNet(nn.Module):
         """ Classifier """
         outputs = self.outputs(d4)
         return outputs
+
+@register('unet-basic-PSUpsampling')
+class UNet(nn.Module):
+    def __init__(self, in_channels, out_channels, batch_norm=False):
+        super().__init__()
+        """ Encoder """
+        self.e1 = Encoder(in_channels, 64, batch_norm=batch_norm)
+        self.e2 = Encoder(64, 128, batch_norm=batch_norm)
+        self.e3 = Encoder(128, 256, batch_norm=batch_norm)
+        self.e4 = Encoder(256, 512, batch_norm=batch_norm)
+        """ Bottleneck """
+        self.b = ConvBlock(512, 1024, batch_norm=batch_norm)
+        """ Decoder """
+        self.d1 = Decoder(1024, 512, batch_norm=batch_norm)
+        self.d2 = Decoder(512, 256, batch_norm=batch_norm)
+        self.d3 = Decoder(256, 128, batch_norm=batch_norm)
+        self.d4 = Decoder(128, 64, batch_norm=batch_norm)
+        """Upsamling"""
+        # self.c1 = ConvBlock(64, 3, batch_norm=False)
+        
+        # self.c2 = ConvBlock(3, 3, batch_norm=False)
+        self.c1 = nn.Conv2d(64, out_channels, kernel_size=3, padding=1)
+        self.ps = nn.PixelShuffle(2)
+        self.c2 = nn.Conv2d(3,3, kernel_size=3,padding=1)
+        self.relu = nn.ReLU(inplace=True)
+
+
+
+    def forward(self, inputs):
+        """ Encoder """
+        s1, p1 = self.e1(inputs)
+        s2, p2 = self.e2(p1)
+        s3, p3 = self.e3(p2)
+        s4, p4 = self.e4(p3)
+        """ Bottleneck """
+        b = self.b(p4)
+        """ Decoder """
+        d1 = self.d1(b, s4)
+        d2 = self.d2(d1, s3)
+        d3 = self.d3(d2, s2)
+        d4 = self.d4(d3, s1)
+        """ Classifier """
+        o1 = self.c1(d4)
+        # o1_ = self.relu(o1)
+        # o1 = self.outputs(d4)
+        # o2 = self.c1(outputs)
+        # print(o2.shape, 'output shape from unet.py from line 216')
+        o2 = self.ps(o1)
+        o3 = self.c2(o2)
+        # o3_ = self.relu(o3)
+        # print(outputs.shape, 'outputshape from unet.py line 223')
+        torch.autograd.set_detect_anomaly(True)
+        
+
+        return o3
+
+@register('unet-basic-PSUpsampling-exp3')
+class UNet(nn.Module):
+    def __init__(self, in_channels, out_channels, batch_norm=False):
+        super().__init__()
+        """ Encoder """
+        self.e1 = Encoder(in_channels, 64, batch_norm=batch_norm)
+        self.e2 = Encoder(64, 128, batch_norm=batch_norm)
+        self.e3 = Encoder(128, 256, batch_norm=batch_norm)
+        self.e4 = Encoder(256, 512, batch_norm=batch_norm)
+        """ Bottleneck """
+        self.b = ConvBlock(512, 1024, batch_norm=batch_norm)
+        """ Decoder """
+        self.d1 = Decoder(1024, 512, batch_norm=batch_norm)
+        self.d2 = Decoder(512, 256, batch_norm=batch_norm)
+        self.d3 = Decoder(256, 128, batch_norm=batch_norm)
+        self.d4 = Decoder(128, 64, batch_norm=batch_norm)
+        """Upsamling"""
+        # self.c1 = ConvBlock(64, 3, batch_norm=False)
+        
+        # self.c2 = ConvBlock(3, 3, batch_norm=False)
+        self.c1 = nn.Conv2d(64, out_channels, kernel_size=3, padding=1)
+        self.ps = nn.PixelShuffle(2)
+        self.c2 = nn.Conv2d(3,3, kernel_size=3,padding=1)
+        self.relu = nn.ReLU(inplace=True)
+
+
+
+    def forward(self, inputs):
+        """ Encoder """
+        s1, p1 = self.e1(inputs)
+        s2, p2 = self.e2(p1)
+        s3, p3 = self.e3(p2)
+        s4, p4 = self.e4(p3)
+        """ Bottleneck """
+        b = self.b(p4)
+        """ Decoder """
+        d1 = self.d1(b, s4)
+        d2 = self.d2(d1, s3)
+        d3 = self.d3(d2, s2)
+        d4 = self.d4(d3, s1)
+        """ Classifier """
+        o1 = self.c1(d4)
+        # o1_ = self.relu(o1)
+        # o1 = self.outputs(d4)
+        # o2 = self.c1(outputs)
+        # print(o2.shape, 'output shape from unet.py from line 216')
+        o2 = self.ps(o1)
+        o3 = self.c2(o2)
+        # o3_ = self.relu(o3)
+        # print(outputs.shape, 'outputshape from unet.py line 223')
+        torch.autograd.set_detect_anomaly(True)
+        
+
+        return o3
 
 
 @register('unet-basic-modified')

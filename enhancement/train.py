@@ -371,7 +371,7 @@ def train(train_loader, model, optimizer, loss_fn, epoch):
         # print(inp.shape, 'Input shape to the model')
         pred = model(inp)
 
-        # print(inp.shape, gt.shape, pred.shape, 'Shud be different ideally')
+        # print(inp.shape, gt.shape, pred.shape, 'From train.py line 374')
         # pred = pred.clamp_(0, 1) # This feels bit sus
         if config.get('stereo'):
             resizer = Resize([192, 624])
