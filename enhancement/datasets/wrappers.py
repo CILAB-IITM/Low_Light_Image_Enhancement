@@ -98,7 +98,7 @@ class Preprocessing(Dataset):
         else:
             x = self.dataset[idx // self.pcount][0][0]
             y = self.dataset[idx // self.pcount][1][idx % self.pcount]
-            amp = self.dataset[idx // self.pcount][0][1] #!
+             #!
             # print(x.shape, y.shape, 'input and output shape from wrapper line 102')
             # print(amp, 'amp from wrapper line 97') 
         if self.amp is not None:
@@ -109,11 +109,13 @@ class Preprocessing(Dataset):
                 sumOfPixels = torch.sum(x)
                 amp = 0.5 * (3 * H * W) / (sumOfPixels)  #! m = 0.5
                 x = (x * amp).clamp_(0, 1)
-            elif amp:
-                x = (x * amp).clamp_(0, 1)
-            else:
-                # print('hello')
-                x = (x * self.amp).clamp_(0, 1)
+            elif self.amp:
+                if self.amp != True:
+                    print('Wrong')
+                    x = (x * self.amp).clamp_(0, 1)
+                else:
+                    amp = self.dataset[idx // self.pcount][0][1]
+                    x = (x * amp).clamp_(0, 1)
 
         if self.patch:
             if self.raw and not self.stereo:
@@ -123,10 +125,10 @@ class Preprocessing(Dataset):
                     rnum_h += 1
                 if rnum_w % 2 != 0:
                     rnum_w += 1
-                new_x = x[
+                new_x = x[:,
                     rnum_h : rnum_h + self.psize[0], rnum_w : rnum_w + self.psize[1]
                 ]
-                raw = new_x
+                raw = new_x[0]
                 raw_h, raw_w = raw.shape
                 r = torch.zeros((raw_h // 2, raw_w // 2, 1))
                 g1 = torch.zeros((raw_h // 2, raw_w // 2, 1))

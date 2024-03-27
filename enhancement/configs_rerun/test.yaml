@@ -1,74 +1,77 @@
-# Experiment 1: Single Image Enhancement 
+# For experiment 1: Plain left and right concatenation. 
+# Modifications made
+# - Architecture got changed. (check the email with the keyword pixelshuffle)
+# - Added batch norm as well
 
 train_dataset:
   dataset:
-    name: image-folder-basic-raw
+    name: image-folder-pair
     args:
-      root_path_inp: /data1/deva/dataset/OUTDOOR_RAW/low_light/cam1
+      root_path_inp1: /data1/deva/dataset/OUTDOOR_RAW/low_light/cam1
+      root_path_inp2: /data1/deva/dataset/OUTDOOR_RAW/low_light/cam2 
       root_path_out: /data1/deva/dataset/OUTDOOR_RAW/low_light/GT_Final
       split_file: 
       split_key: train
       split_ratio: 0.8
-      repeat: 30
-      patchify: False
-      patch_size: 512
-      hetero: True 
-  wrapper:
-    name: preprocessing
-    args:
-      resize: False
-      patch: True  #! Patch Change
-      random_crop: false
-      amp: true # True for hetero training
-      psize: [512, 512]
-      augment_rotate: false
-      normalise: false
-      equalize: false
-      monochrome: False
-      stereo: false
-      raw: true
-      flip: False
-      rsize: None
-      hetero: True
-  batch_size: 4
-
-val_dataset:
-  dataset:
-    name: image-folder-basic-raw
-    args:
-      root_path_inp: /data1/deva/dataset/OUTDOOR_RAW/low_light/cam1
-      root_path_out: /data1/deva/dataset/OUTDOOR_RAW/low_light/GT_Final
-      split_key: test
       repeat: 1
       patchify: false
       patch_size: 512
-      hetero: true 
+      hetero: true
   wrapper:
     name: preprocessing
     args:
       resize: False
       patch: true
       random_crop: False # Not Needed
-      amp: False
+      amp: True
+      psize: [512,512]
+      augment_rotate: False
+      normalise: False
+      equalize: False
+      monochrome: False
+      stereo: true
+      add_noise: False
+      raw: true 
+      flip: False 
+      rsize: 
+      hetero: True
+  batch_size: 4
+
+val_dataset:
+  dataset:
+    name: image-folder-pair
+    args:
+      root_path_inp1: /data1/deva/dataset/OUTDOOR_RAW/low_light/cam1
+      root_path_inp2: /data1/deva/dataset/OUTDOOR_RAW/low_light/cam2
+      root_path_out: /data1/deva/dataset/OUTDOOR_RAW/low_light/GT_Final
+      split_key: test
+      repeat: 1
+      patchify: false
+      patch_size: 512
+  wrapper:
+    name: preprocessing
+    args:
+      resize: False
+      patch: true
+      random_crop: False # Not Needed
+      amp: true
       psize: [512, 512]
       augment_rotate: False
       normalise: False
       equalize: False
       monochrome: False
-      stereo: False
+      stereo: true
       add_noise: False
       raw: true 
       flip: False 
       rsize: None 
-      hetero: true
+      hetero: True
   batch_size: 4
 
-
-# Need to figure this out
 model:
-  name: unet-basic-PSUpsampling
+  name: unet-basic-PSUpsampling # Upsampling of the image is done using pixelShuffle 
   args:
-    in_channels: 4
+    in_channels: 8
     out_channels: 12
     batch_norm: false
     

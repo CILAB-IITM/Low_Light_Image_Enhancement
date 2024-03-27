@@ -442,6 +442,7 @@ class ImageFolder2(Dataset):
         cache="none",
         patchify=False,
         patch_size=256,
+        hetero = True
     ):
         self.repeat = repeat
         self.cache = cache
